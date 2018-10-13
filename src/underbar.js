@@ -110,9 +110,9 @@
     }else{
       result=array;
     }
-
     result = [...(new Set(result))];
-    return isSorted?_.each(result.sort(), ):result;
+
+    return isSorted?result.sort():result;
   };
 
 
