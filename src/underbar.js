@@ -168,14 +168,27 @@
   //          No accumulator is given so the first element is used.
   _.reduce = function(collection, iterator, accumulator) {
     let i=0;
-    if(accumulator!==0&&!accumulator) {
-      accumulator=collection[0];
-      i++;
+    if (Array.isArray(collection)){
+      if(accumulator!==0&& accumulator!==false &&!accumulator) {
+        accumulator=collection[0];
+        i++;
+      }
+      while(i<collection.length){
+        accumulator=iterator(accumulator,collection[i]);
+        i++;
+      }
+    }else{
+      if(accumulator!==0&& accumulator!==false &&!accumulator) {
+        accumulator=collection[Object.keys(collection)[0]];
+        i++;
+      }
+      while(i<Object.keys(collection).length){
+        accumulator=iterator(accumulator,collection[Object.keys(collection)[i]]);
+        i++;
+      }
     }
-    while(i<collection.length){
-      accumulator=iterator(accumulator,collection[i]);
-      i++
-    }
+
+
     return accumulator;
   };
 
@@ -195,11 +208,26 @@
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
     // TIP: Try re-using reduce() here.
+
+    if(!iterator) iterator=function(item){return item;}
+
+    return _.reduce(collection, function(passed,item){
+      if (item===null||item===undefined){
+        item=false;
+      }
+      let result = iterator(item);
+      if (result ===0) return false;
+      return result && passed;
+    }, true);
   };
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
   _.some = function(collection, iterator) {
+    for (let e of collection){
+      if (_.every([e],iterator)) return true;
+    }
+    return false;
     // TIP: There's a very clever way to re-use every() here.
   };
 
@@ -223,11 +251,21 @@
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
+    return Object.assign(...arguments);
+
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
+
+      var args = [...arguments];
+      let result={};
+      for(let i=0;i<args.length;i++){
+        Object.assign(result,args[args.length-1-i]);
+      }
+      Object.assign(obj,result);
+      return obj;
   };
 
 
@@ -271,6 +309,15 @@
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
+    let table={};
+    return (a,...args)=>{
+      // let argm=arguments[0];
+      // if (Array.isArray(a))return func(arguments);
+
+      if (table[a,args]) return table[a,args];
+      table[a,args]=func(a,...args);
+      return table[a,args];
+    };
   };
 
   // Delays a function for the given number of milliseconds, and then calls
@@ -280,6 +327,8 @@
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
+    let args=Array.from(arguments).slice(2);
+    setTimeout(func,wait,...args);
   };
 
 
@@ -294,6 +343,13 @@
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
+    let copy = array.slice();
+    let i=array.length;
+    while (i--){
+      let randomeIndex=Math.random()*copy.length;
+      copy.push(...copy.splice(randomeIndex-1,1));
+    }
+    return copy;
   };
 
 
